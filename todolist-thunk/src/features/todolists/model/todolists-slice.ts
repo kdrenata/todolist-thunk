@@ -39,7 +39,7 @@ export const todolistsSlice = createAppSlice({
     fetchTodolistsTC: create.asyncThunk(
       async (_arg, thunkAPI) => {
         try {
-          const res = await todolistsApi.getTodolists()
+          const res = await todolistsApi.getTodolists() // делаем запрос на сервер чтобы получить тудулисты
           return { todolists: res.data }
         } catch (error) {
           return thunkAPI.rejectWithValue(null)
@@ -51,6 +51,7 @@ export const todolistsSlice = createAppSlice({
             state.push({ ...tl, filter: "all" })
           })
         },
+
       },
     ),
   }),
