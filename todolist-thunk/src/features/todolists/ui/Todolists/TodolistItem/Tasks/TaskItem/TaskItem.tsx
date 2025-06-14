@@ -1,6 +1,6 @@
 import { EditableSpan } from "@/common/components/EditableSpan/EditableSpan"
 import { useAppDispatch } from "@/common/hooks"
-import { changeTaskStatusAC, changeTaskTitleAC, deleteTaskAC } from "@/features/todolists/model/tasks-slice"
+import { changeTaskStatusAC, changeTaskTitleAC, deleteTasks } from "@/features/todolists/model/tasks-slice"
 import DeleteIcon from "@mui/icons-material/Delete"
 import Checkbox from "@mui/material/Checkbox"
 import IconButton from "@mui/material/IconButton"
@@ -18,8 +18,8 @@ type Props = {
 export const TaskItem = ({ task, todolistId }: Props) => {
   const dispatch = useAppDispatch()
 
-  const deleteTask = () => {
-    dispatch(deleteTaskAC({ todolistId, taskId: task.id }))
+  const deleteTaskHandler = () => {
+    dispatch(deleteTasks({ todolistId, taskId: task.id }))
   }
 
   const changeTaskStatus = (e: ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +38,7 @@ export const TaskItem = ({ task, todolistId }: Props) => {
         <Checkbox checked={isDone} onChange={changeTaskStatus} />
         <EditableSpan value={task.title} onChange={changeTaskTitle} />
       </div>
-      <IconButton onClick={deleteTask}>
+      <IconButton onClick={deleteTaskHandler}>
         <DeleteIcon />
       </IconButton>
     </ListItem>
