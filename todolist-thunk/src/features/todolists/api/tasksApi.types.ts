@@ -27,3 +27,7 @@ export type UpdateTaskModel = {
   startDate: string
   deadline: string
 }
+// type UpdateTaskModel2 = Partial<UpdateTaskModel> делает свойства не обязательными
+// type UpdateTaskModel2 = Required<UpdateTaskModel> делает свойства обязательными
+// type UpdateTaskModel2 = Omit<UpdateTaskModel, 'deadline' | 'title'> убирает ненужные свойства
+// type UpdateTaskModel2 = Pick<UpdateTaskModel, 'deadline'> достает нужные свойства, в данном случае достанет 'deadline'

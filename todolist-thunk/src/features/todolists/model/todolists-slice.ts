@@ -45,7 +45,7 @@ export const todolistsSlice = createAppSlice({
           await new Promise((resolve)=>setTimeout(resolve, 2000)) //имитация задержки
           const res = await todolistsApi.getTodolists() // делаем запрос на сервер чтобы получить тудулисты
           // off
-          dispatch (changeStatusAC({status: 'succeeded'}))
+          dispatch (changeStatusAC({status: 'idle'}))
           return { todolists: res.data }
         } catch (error) {
           return rejectWithValue(null)
