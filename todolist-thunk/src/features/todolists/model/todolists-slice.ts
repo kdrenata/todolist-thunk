@@ -2,6 +2,7 @@ import { todolistsApi } from "@/features/todolists/api/todolistsApi"
 import type { Todolist } from "@/features/todolists/api/todolistsApi.types"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { createAppSlice } from "@/common/utils"
+import { changeStatusAC } from "@/app/app-slice.ts"
 
 export const todolistsSlice = createAppSlice({
   name: "todolists",
@@ -37,12 +38,17 @@ export const todolistsSlice = createAppSlice({
     }),
     // thunks (async action)
     fetchTodolistsTC: create.asyncThunk(
-      async (_arg, thunkAPI) => {
+      async (_arg, {dispatch, rejectWithValue}) => {
         try {
+          // on
+          dispatch (changeStatusAC({status: 'loading'}))
+          await new Promise((resolve)=>setTimeout(resolve, 2000)) //имитация задержки
           const res = await todolistsApi.getTodolists() // делаем запрос на сервер чтобы получить тудулисты
+          // off
+          dispatch (changeStatusAC({status: 'succeeded'}))
           return { todolists: res.data }
         } catch (error) {
-          return thunkAPI.rejectWithValue(null)
+          return rejectWithValue(null)
         }
       },
       {
@@ -59,12 +65,18 @@ export const todolistsSlice = createAppSlice({
 
 export const createTodolistTC = createAsyncThunk(
   `${todolistsSlice.name}/createTodolistTC`,
-  async (title: string, thunkAPI) => {
+  async (title: string, {dispatch, rejectWithValue}) => {
     try {
+      // on
+      dispatch (changeStatusAC({status: 'loading'}))
+      await new Promise((resolve)=>setTimeout(resolve, 2000)) //имитация задержки
       const res = await todolistsApi.createTodolist(title)
+      dispatch (changeStatusAC({status: 'succeeded'}))
       return { todolist: res.data.data.item }
+      // on
+
     } catch (error) {
-      return thunkAPI.rejectWithValue(null)
+      return rejectWithValue(null)
     }
   },
 )
