@@ -2,9 +2,7 @@
 import { createTodolistTC, deleteTodolistTC } from "./todolists-slice"
 import { tasksApi } from "@/features/todolists/api/tasksApi.ts"
 import { createAppSlice } from "@/common/utils"
-import { DomainTask, type UpdateTaskModel } from "@/features/todolists/api/tasksApi.types.ts"
-import { TaskStatus } from "@/common/enums"
-import { RootState } from "@/app/store.ts"
+import { DomainTask } from "@/features/todolists/api/tasksApi.types.ts"
 // {
 //   'todoId1': [{id: 1, title: 'a'}],
 //   'todoId2': [{id: 10, title: 'aa'}],
@@ -77,29 +75,11 @@ export const tasksSlice = createAppSlice({
         }
       }),
     changeTaskStatus: create.asyncThunk(
-      async (args: { todolistId: string, taskId: string, status: TaskStatus }, { rejectWithValue, getState }) => {
-        const { todolistId, taskId, status } = args
-
+      async (task: DomainTask, { rejectWithValue }) => {
         try {
-          const allTasks = (getState() as RootState).tasks //мы явно говорим TypeScript(у), что результат вызова getState() — это объект типа RootState.
-          const tasksForTodolist = allTasks[todolistId]
-          const task = tasksForTodolist.find((t) => t.id === taskId)
-
-
-          if (task) {
-            const model: UpdateTaskModel = {
-              description: task.description,
-              title: task.title,
-              priority: task.priority,
-              startDate: task.startDate,
-              deadline: task.deadline,
-              status
-            }
-            const res = await tasksApi.updateTask({ taskId, todolistId, model })
+            const res = await tasksApi.updateTask({ taskId: task.id, todolistId: task.todoListId, model: task })
             return { task: res.data.data.item }
-          } else {
-            return rejectWithValue(null)
-          }
+
         } catch (error) {
           return rejectWithValue(null)
         }
