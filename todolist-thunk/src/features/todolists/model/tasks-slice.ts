@@ -2,8 +2,9 @@
 import { createTodolistTC, deleteTodolistTC } from "./todolists-slice"
 import { tasksApi } from "@/features/todolists/api/tasksApi.ts"
 import { createAppSlice } from "@/common/utils"
-import { DomainTask } from "@/features/todolists/api/tasksApi.types.ts"
+import { DomainTask, type UpdateTaskModel } from "@/features/todolists/api/tasksApi.types.ts"
 import { TaskStatus } from "@/common/enums"
+import { RootState } from "@/app/store.ts"
 // {
 //   'todoId1': [{id: 1, title: 'a'}],
 //   'todoId2': [{id: 10, title: 'aa'}],
@@ -59,7 +60,7 @@ export const tasksSlice = createAppSlice({
       }
     ),
     deleteTasks: create.asyncThunk(
-      async (args: {todolistId: string; taskId: string}, { rejectWithValue }) => {
+      async (args: { todolistId: string; taskId: string }, { rejectWithValue }) => {
         try {
           await tasksApi.deleteTask(args)
           return args
@@ -75,12 +76,49 @@ export const tasksSlice = createAppSlice({
           }
         }
       }),
-    changeTaskStatusAC: create.reducer<{ todolistId: string; taskId: string; isDone: boolean }>((state, action) => {
-      const task = state[action.payload.todolistId].find((task) => task.id === action.payload.taskId)
-      if (task) {
-        task.status = action.payload.isDone ? TaskStatus.Completed : TaskStatus.New
+    changeTaskStatus: create.asyncThunk(
+      async (args: { todolistId: string, taskId: string, status: TaskStatus }, { rejectWithValue, getState }) => {
+        const { todolistId, taskId, status } = args
+
+        try {
+          const allTasks = (getState() as RootState).tasks //мы явно говорим TypeScript(у), что результат вызова getState() — это объект типа RootState.
+          const tasksForTodolist = allTasks[todolistId]
+          const task = tasksForTodolist.find((t) => t.id === taskId)
+
+
+          if (task) {
+            const model: UpdateTaskModel = {
+              description: task.description,
+              title: task.title,
+              priority: task.priority,
+              startDate: task.startDate,
+              deadline: task.deadline,
+              status
+            }
+            const res = await tasksApi.updateTask({ taskId, todolistId, model })
+            return { task: res.data.data.item }
+          } else {
+            return rejectWithValue(null)
+          }
+        } catch (error) {
+          return rejectWithValue(null)
+        }
+      }, {
+        fulfilled: (state, action) => {
+          const updateTask = action.payload.task
+          const task = state[updateTask.todoListId].find((task) => task.id === updateTask.id)
+          if (task) {
+            task.status = updateTask.status
+          }
+        }
       }
-    }),
+    ),
+    // changeTaskStatusAC: create.reducer<{ todolistId: string; taskId: string; isDone: boolean }>((state, action) => {
+    //   const task = state[action.payload.todolistId].find((task) => task.id === action.payload.taskId)
+    //   if (task) {
+    //     task.status = action.payload.isDone ? TaskStatus.Completed : TaskStatus.New
+    //   }
+    // }),
     changeTaskTitleAC: create.reducer<{ todolistId: string; taskId: string; title: string }>((state, action) => {
       const task = state[action.payload.todolistId].find((task) => task.id === action.payload.taskId)
       if (task) {
@@ -91,7 +129,7 @@ export const tasksSlice = createAppSlice({
 })
 
 export const { selectTasks } = tasksSlice.selectors
-export const { changeTaskStatusAC, changeTaskTitleAC, fetchTasks, createTasks, deleteTasks } = tasksSlice.actions // чтобы диспатчить санку нужно ее достать из экшенов
+export const { changeTaskTitleAC, fetchTasks, createTasks, deleteTasks, changeTaskStatus } = tasksSlice.actions // чтобы диспатчить санку нужно ее достать из экшенов
 export const tasksReducer = tasksSlice.reducer
 
 export type TasksState = Record<string, DomainTask[]> // Record встроенный утилитный тип TypeScript.
